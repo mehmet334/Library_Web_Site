@@ -5,9 +5,16 @@ export default function Publisher() {
   const [publishers, setPublishers] = useState([]);
   const [form, setForm] = useState({ id: "", name: "", address: "" });
 
+  // 🌐 Backend adresi: ortam değişkeninden al, yoksa localhost kullan
+  const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
+
+  // 📦 Verileri getir
   useEffect(() => {
-    fetch("http://localhost:8080/api/publishers")
-      .then((res) => res.json())
+    fetch(`${API_URL}/api/publishers`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Veri alınamadı");
+        return res.json();
+      })
       .then((data) => setPublishers(data))
       .catch(() => notify.error("Yayınevleri alınamadı ❌"));
   }, []);
@@ -15,14 +22,16 @@ export default function Publisher() {
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
+  // 💾 Ekle / Güncelle
   const handleSubmit = async (e) => {
     e.preventDefault();
     const isEdit = !!form.id;
     const method = isEdit ? "PUT" : "POST";
     if (isEdit) form.id = Number(form.id);
+
     const url = isEdit
-      ? `http://localhost:8080/api/publishers/${form.id}`
-      : "http://localhost:8080/api/publishers";
+      ? `${API_URL}/api/publishers/${form.id}`
+      : `${API_URL}/api/publishers`;
 
     try {
       const res = await fetch(url, {
@@ -31,16 +40,16 @@ export default function Publisher() {
         body: JSON.stringify(form),
       });
 
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error("Sunucu hatası");
 
-      const saved = await res.json().catch(() => null);
+      const saved = await res.json();
       if (isEdit) {
-        setPublishers(
-          publishers.map((p) => (p.id === form.id ? saved : p))
+        setPublishers((prev) =>
+          prev.map((p) => (p.id === saved.id ? saved : p))
         );
         notify.success("Yayınevi güncellendi ✅");
       } else {
-        setPublishers([...publishers, saved]);
+        setPublishers((prev) => [...prev, saved]);
         notify.success("Yayınevi eklendi 🎉");
       }
 
@@ -50,16 +59,20 @@ export default function Publisher() {
     }
   };
 
+  // 🗑️ Silme işlemi
   const handleDelete = async (id) => {
     if (!window.confirm("Yayınevini silmek istediğinize emin misiniz?")) return;
 
-    const res = await fetch(`http://localhost:8080/api/publishers/${id}`, {
-      method: "DELETE",
-    });
-    if (res.ok) {
-      setPublishers(publishers.filter((p) => p.id !== id));
+    try {
+      const res = await fetch(`${API_URL}/api/publishers/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) throw new Error("Silme başarısız");
+
+      setPublishers((prev) => prev.filter((p) => p.id !== id));
       notify.success("Yayınevi silindi 🗑️");
-    } else {
+    } catch {
       notify.error("Silme işlemi başarısız ❌");
     }
   };

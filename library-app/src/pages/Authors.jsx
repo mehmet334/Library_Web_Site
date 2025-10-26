@@ -5,25 +5,30 @@ export default function Author() {
   const [authors, setAuthors] = useState([]);
   const [form, setForm] = useState({ id: "", name: "", country: "" });
 
-  // Tüm yazarları getir
+  // 🌍 Ortam değişkeninden backend URL'sini al
+  const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
+
+  // 🔹 Tüm yazarları getir
   useEffect(() => {
-    fetch("http://localhost:8080/api/authors")
+    fetch(`${API_URL}/api/authors`)
       .then((res) => res.json())
       .then((data) => setAuthors(data))
       .catch(() => notify.error("Yazar listesi alınamadı ❌"));
-  }, []);
+  }, [API_URL]);
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
+  // 🔹 Ekle / Güncelle
   const handleSubmit = async (e) => {
     e.preventDefault();
     const isEdit = !!form.id;
     const method = isEdit ? "PUT" : "POST";
     if (isEdit) form.id = Number(form.id);
+
     const url = isEdit
-      ? `http://localhost:8080/api/authors/${form.id}`
-      : "http://localhost:8080/api/authors";
+      ? `${API_URL}/api/authors/${form.id}`
+      : `${API_URL}/api/authors`;
 
     try {
       const res = await fetch(url, {
@@ -49,10 +54,11 @@ export default function Author() {
     }
   };
 
+  // 🔹 Silme
   const handleDelete = async (id) => {
     if (!window.confirm("Yazarı silmek istediğinize emin misiniz?")) return;
 
-    const res = await fetch(`http://localhost:8080/api/authors/${id}`, {
+    const res = await fetch(`${API_URL}/api/authors/${id}`, {
       method: "DELETE",
     });
     if (res.ok) {
@@ -63,6 +69,7 @@ export default function Author() {
     }
   };
 
+  // 🔹 Düzenleme
   const handleEdit = (a) => setForm(a);
 
   return (

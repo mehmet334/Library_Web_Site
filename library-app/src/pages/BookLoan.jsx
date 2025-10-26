@@ -11,17 +11,23 @@ export default function BookLoan() {
     returnDate: "",
   });
 
+  // 🌍 Ortam değişkeninden backend URL'sini al
+  const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
+
+  // 📦 Verileri yükle
   useEffect(() => {
-    fetch("http://localhost:8080/api/loans")
+    fetch(`${API_URL}/api/loans`)
       .then((res) => res.json())
       .then((data) => setLoans(data))
       .catch(() => notify.error("Kitap alma listesi alınamadı ❌"));
-  }, []);
+  }, [API_URL]);
 
+  // 🔹 Form değişiklikleri
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // 🔹 Ekle / Güncelle
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -29,8 +35,8 @@ export default function BookLoan() {
     const method = isEdit ? "PUT" : "POST";
     if (isEdit) form.id = Number(form.id);
     const url = isEdit
-      ? `http://localhost:8080/api/loans/${form.id}`
-      : "http://localhost:8080/api/loans";
+      ? `${API_URL}/api/loans/${form.id}`
+      : `${API_URL}/api/loans`;
 
     fetch(url, {
       method,
@@ -60,8 +66,9 @@ export default function BookLoan() {
       .catch(() => notify.error("Kayıt kaydedilemedi ❌"));
   };
 
+  // 🔹 Silme işlemi
   const handleDelete = (id) => {
-    fetch(`http://localhost:8080/api/loans/${id}`, { method: "DELETE" })
+    fetch(`${API_URL}/api/loans/${id}`, { method: "DELETE" })
       .then((res) => {
         if (res.ok) {
           setLoans(loans.filter((l) => l.id !== id));
@@ -73,6 +80,7 @@ export default function BookLoan() {
       .catch(() => notify.error("Sunucuya bağlanılamadı ❌"));
   };
 
+  // 🔹 Düzenleme işlemi
   const handleEdit = (loan) => {
     setForm({
       id: loan.id,

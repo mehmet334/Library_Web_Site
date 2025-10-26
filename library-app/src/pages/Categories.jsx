@@ -51,7 +51,7 @@ export default function Category() {
   const handleDelete = async (id) => {
     if (!window.confirm("Kategoriyi silmek istediğinize emin misiniz?")) return;
 
-    const res = await fetch(`http://localhost:8080/api/categories/${id}`, {
+    const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/categories/${id}`, {
       method: "DELETE",
     });
     if (res.ok) {

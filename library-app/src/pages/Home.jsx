@@ -5,9 +5,12 @@ import { Link } from "react-router-dom";
 export default function Home() {
   const [latestBooks, setLatestBooks] = useState([]);
 
+  // 🌍 Ortam değişkeninden backend URL'sini al
+  const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
+
   // ✅ Backend'den son 5 kitabı çek
   useEffect(() => {
-    fetch("http://localhost:8080/api/books")
+    fetch(`${API_URL}/api/books`)
       .then((res) => res.json())
       .then((data) => {
         // Kitapları id'ye göre tersten sırala (yeni eklenen en üstte)
@@ -15,7 +18,7 @@ export default function Home() {
         setLatestBooks(sorted);
       })
       .catch((err) => console.error("Kitaplar alınamadı:", err));
-  }, []);
+  }, [API_URL]);
 
   return (
     <div

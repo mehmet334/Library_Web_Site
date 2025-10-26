@@ -82,7 +82,7 @@ export default function Books() {
     if (!window.confirm("Bu kitabı silmek istediğinize emin misiniz?")) return;
 
     try {
-      const res = await fetch(`http://localhost:8080/api/books/${Number(id)}`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/books/${Number(id)}`, {
         method: "DELETE",
       });
 
