@@ -10,7 +10,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/publishers")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "https://librarytezcan.netlify.app")
+
 public class PublisherController {
 
     @Autowired
