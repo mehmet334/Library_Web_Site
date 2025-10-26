@@ -10,52 +10,56 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/books")
 @CrossOrigin(origins = "https://librarytezcan.netlify.app")
-
 public class BookController {
 
     @Autowired
     private BookRepository bookRepository;
 
+    // 📘 Tüm kitapları getir
     @GetMapping
     public List<Book> getAllBooks() {
         return bookRepository.findAll();
     }
 
+    // ➕ Yeni kitap ekle
     @PostMapping
     public Book addBook(@RequestBody Book book) {
         return bookRepository.save(book);
     }
 
-@PutMapping("/{id}")
-public ResponseEntity<Book> updateBook(@PathVariable Long id, @RequestBody Book updatedBook) {
-    return bookRepository.findById(id)
-            .map(book -> {
-                book.setId(id); // 🔧 önemli satır
-                book.setTitle(updatedBook.getTitle());
-                book.setAuthor(updatedBook.getAuthor());
-                book.setPublisher(updatedBook.getPublisher());
-                book.setYear(updatedBook.getYear());
-                return ResponseEntity.ok(bookRepository.save(book));
-            })
-            .orElse(ResponseEntity.notFound().build());
-}
-
-
-@DeleteMapping("/{id}")
-public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
-    try {
-        if (!bookRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
+    // ✏️ Kitap güncelle
+    @PutMapping("/{id}")
+    public ResponseEntity<Book> updateBook(@PathVariable("id") Long id,  // ✅ parametre adı açıkça belirtildi
+                                           @RequestBody Book updatedBook) {
+        try {
+            return bookRepository.findById(id)
+                    .map(book -> {
+                        book.setTitle(updatedBook.getTitle());
+                        book.setAuthor(updatedBook.getAuthor());
+                        book.setPublisher(updatedBook.getPublisher());
+                        book.setYear(updatedBook.getYear());
+                        Book saved = bookRepository.save(book);
+                        return ResponseEntity.ok(saved);
+                    })
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
         }
-        bookRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
-    } catch (Exception e) {
-        e.printStackTrace();
-        return ResponseEntity.internalServerError().build(); // ✅ hata yakalama eklendi
     }
-}
 
-
-
-
+    // 🗑️ Kitap sil
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBook(@PathVariable("id") Long id) {  // ✅ parametre adı açıkça belirtildi
+        try {
+            if (!bookRepository.existsById(id)) {
+                return ResponseEntity.notFound().build();
+            }
+            bookRepository.deleteById(id);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 }
