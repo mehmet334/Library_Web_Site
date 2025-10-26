@@ -17,7 +17,7 @@ export default function Publisher() {
       })
       .then((data) => setPublishers(data))
       .catch(() => notify.error("Yayınevleri alınamadı ❌"));
-  }, []);
+            }, [API_URL]); 
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
