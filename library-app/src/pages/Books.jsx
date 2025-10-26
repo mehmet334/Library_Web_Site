@@ -11,13 +11,19 @@ export default function Books() {
     year: "",
   });
 
+  // 🌐 Backend adresi (Netlify'da otomatik .env'den alır)
+  const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
+
   // 📘 Kitapları backend'den al
   useEffect(() => {
-    fetch("http://localhost:8080/api/books")
-      .then((res) => res.json())
+    fetch(`${API_URL}/api/books`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Kitaplar alınamadı");
+        return res.json();
+      })
       .then((data) => setBooks(data))
       .catch(() => notify.error("Kitap listesi alınamadı ❌"));
-  }, []);
+  }, [API_URL]);
 
   // ✏️ Form değiştiğinde state güncelle
   const handleChange = (e) =>
@@ -29,8 +35,8 @@ export default function Books() {
 
     const isEdit = Boolean(form.id);
     const url = isEdit
-      ? `http://localhost:8080/api/books/${Number(form.id)}`
-      : "http://localhost:8080/api/books";
+      ? `${API_URL}/api/books/${Number(form.id)}`
+      : `${API_URL}/api/books`;
     const method = isEdit ? "PUT" : "POST";
 
     const payload = {
@@ -82,7 +88,7 @@ export default function Books() {
     if (!window.confirm("Bu kitabı silmek istediğinize emin misiniz?")) return;
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/books/${Number(id)}`, {
+      const res = await fetch(`${API_URL}/api/books/${Number(id)}`, {
         method: "DELETE",
       });
 

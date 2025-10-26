@@ -5,24 +5,33 @@ export default function Category() {
   const [categories, setCategories] = useState([]);
   const [form, setForm] = useState({ id: "", name: "", description: "" });
 
+  // 🌐 Backend URL - ortam değişkeninden al, yoksa localhost
+  const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
+
+  // 📦 Kategorileri getir
   useEffect(() => {
-    fetch("http://localhost:8080/api/categories")
-      .then((res) => res.json())
+    fetch(`${API_URL}/api/categories`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Veri alınamadı");
+        return res.json();
+      })
       .then((data) => setCategories(data))
       .catch(() => notify.error("Kategoriler alınamadı ❌"));
-  }, []);
+  }, [API_URL]);
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
+  // 💾 Ekle / Güncelle
   const handleSubmit = async (e) => {
     e.preventDefault();
     const isEdit = !!form.id;
     const method = isEdit ? "PUT" : "POST";
     if (isEdit) form.id = Number(form.id);
+
     const url = isEdit
-      ? `http://localhost:8080/api/categories/${form.id}`
-      : "http://localhost:8080/api/categories";
+      ? `${API_URL}/api/categories/${form.id}`
+      : `${API_URL}/api/categories`;
 
     try {
       const res = await fetch(url, {
@@ -31,33 +40,42 @@ export default function Category() {
         body: JSON.stringify(form),
       });
 
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error("Sunucu hatası");
 
-      const saved = await res.json().catch(() => null);
+      const saved = await res.json();
+
       if (isEdit) {
-        setCategories(categories.map((c) => (c.id === form.id ? saved : c)));
+        setCategories((prev) =>
+          prev.map((c) => (c.id === saved.id ? saved : c))
+        );
         notify.success("Kategori güncellendi ✅");
       } else {
-        setCategories([...categories, saved]);
+        setCategories((prev) => [...prev, saved]);
         notify.success("Kategori eklendi 🎉");
       }
 
       setForm({ id: "", name: "", description: "" });
-    } catch {
+    } catch (err) {
+      console.error("Kategori kaydedilemedi:", err);
       notify.error("Kategori kaydedilemedi ❌");
     }
   };
 
+  // 🗑️ Silme işlemi
   const handleDelete = async (id) => {
     if (!window.confirm("Kategoriyi silmek istediğinize emin misiniz?")) return;
 
-    const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/categories/${id}`, {
-      method: "DELETE",
-    });
-    if (res.ok) {
-      setCategories(categories.filter((c) => c.id !== id));
+    try {
+      const res = await fetch(`${API_URL}/api/categories/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) throw new Error("Silme hatası");
+
+      setCategories((prev) => prev.filter((c) => c.id !== id));
       notify.success("Kategori silindi 🗑️");
-    } else {
+    } catch (err) {
+      console.error("Silme hatası:", err);
       notify.error("Silme işlemi başarısız ❌");
     }
   };
@@ -93,16 +111,22 @@ export default function Category() {
           </tr>
         </thead>
         <tbody>
-          {categories.map((c) => (
-            <tr key={c.id}>
-              <td>{c.name}</td>
-              <td>{c.description}</td>
-              <td>
-                <button onClick={() => handleEdit(c)}>Düzenle</button>
-                <button onClick={() => handleDelete(c.id)}>Sil</button>
-              </td>
+          {categories.length > 0 ? (
+            categories.map((c) => (
+              <tr key={c.id}>
+                <td>{c.name}</td>
+                <td>{c.description}</td>
+                <td>
+                  <button onClick={() => handleEdit(c)}>Düzenle</button>
+                  <button onClick={() => handleDelete(c.id)}>Sil</button>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="3">Henüz kategori yok</td>
             </tr>
-          ))}
+          )}
         </tbody>
       </table>
     </div>
